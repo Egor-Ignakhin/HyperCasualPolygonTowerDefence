@@ -55,75 +55,31 @@ namespace HyperCasualPolygonTowerDefence.Scripts
                 var position = trailRenderer.GetPosition(i);
                 Gizmos.DrawSphere(position, 0.1f);
             }
-
-            if (true)
-                return;
-            for (var i = 0; i < positionCount; i++)
-            {
-                if (i == 0 || i == positionCount - 1)
-                    continue;
-
-
-                var vertices3D = new Vector3[3]
-                {
-                    trailRenderer.GetPosition(i - 1),
-                    trailRenderer.GetPosition(i),
-                    trailRenderer.GetPosition(i + 1)
-                };
-                var vertices2D = new Vector2[]
-                {
-                    vertices3D[0],
-                    vertices3D[1],
-                    vertices3D[2]
-                };
-
-                Handles.color = MathExtensions.PointIsInsideTriangle(towerTr.position, vertices2D)
-                    ? Color.yellow
-                    : Color.green;
-
-                Handles.DrawAAConvexPolygon(vertices3D);
-            }
         }
 
         private void OnChangedPositionsCount()
         {
+#if UNITY_EDITOR
+            ClearLog();
+#endif
+
             var positions = new Vector3[trailRenderer.positionCount];
             trailRenderer.GetPositions(positions);
-            
-            ClearLog();
 
             lastPositionsCount = positions.Length;
 
             if (lastPositionsCount < 3)
                 return;
 
-            var lineA = new Vector3Line
-            {
-                From = positions[0],
-                To = positions[1]
-            };
-
-            var lineB = new Vector3Line
-            {
-                From = positions[^2],
-                To = positions[^1]
-            };
-            
-            if(lineB.From == lineA.To)
+            var intersectionPoint = new Vector3(0, 0, 0);
+            if (!CanClosingAFigure(positions, ref intersectionPoint))
                 return;
 
-            var linesRelationships =
-                MathExtensions.GetLinesRelationship(lineA, lineB,
-                    out var intersectionPoint);
+            CloseAFigure(positions, intersectionPoint, out var triangles);
+        }
 
-            if (linesRelationships.Count != 1)
-                return;
-
-            if (linesRelationships[0] != MathExtensions.LinesRelationship.Intersect)
-            {
-                return;
-            }
-
+        private void CloseAFigure(Vector3[] positions, Vector3 intersectionPoint, out List<int> triangles)
+        {
             var vertices = new List<Vector3>();
 
             var positionsWithoutStartPoint = new List<Vector3>(positions);
@@ -135,7 +91,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts
 
             vertices.Add(intersectionPoint);
 
-            var triangles = new List<int>();
+            triangles = new List<int>();
             for (var i = 1; i < vertices.Count; i++)
             {
                 //Setting central point
@@ -155,6 +111,74 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             var newGm = MeshCreator.CreateGameObject(vertices.ToArray(), triangles.ToArray());
             newGm.GetComponent<MeshRenderer>().sharedMaterial = playerMaterial;
 
+            TryInvadeTower(vertices);
+            ResetTrailPosition(vertices);
+        }
+
+        private static bool CanClosingAFigure(Vector3[] positions, ref Vector3 intersectionPoint)
+        {
+            var lineA = new Vector3Line
+            {
+                From = positions[0],
+                To = positions[1]
+            };
+
+            var lineB = new Vector3Line
+            {
+                From = positions[^2],
+                To = positions[^1]
+            };
+
+            if (lineB.From == lineA.To)
+                return false;
+
+            var linesRelationships =
+                MathExtensions.GetLinesRelationship(lineA, lineB, out intersectionPoint);
+
+            if (linesRelationships.Count != 1)
+                return false;
+
+            return linesRelationships[0] == MathExtensions.LinesRelationship.Intersect;
+        }
+
+        private void TryInvadeTower(List<Vector3> vertices)
+        {
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                var vertices3D = new Vector3[3];
+
+                //Setting central point
+                vertices3D[0] = vertices[0];
+
+                //Setting a current point
+                vertices3D[1] = vertices[i];
+
+                //Setting a next point
+                var iIsLastIndex = i == vertices.Count - 1;
+                if (iIsLastIndex)
+                    vertices3D[2] = vertices[1];
+                else
+                    vertices3D[2] = vertices[i + 1];
+
+                var vertices2D = new Vector2[]
+                {
+                    vertices3D[0],
+                    vertices3D[1],
+                    vertices3D[2]
+                };
+
+                var towerIsInsideTriangle = MathExtensions.PointIsInsideTriangle(towerTr.position, vertices2D);
+
+                if (!towerIsInsideTriangle)
+                    continue;
+
+                towerTr.GetComponent<Tower>().SetInvaderInventory(GetComponent<Inventory>());
+                break;
+            }
+        }
+
+        private void ResetTrailPosition(List<Vector3> vertices)
+        {
             trailRenderer.Clear();
             trailRenderer.AddPosition(vertices.Last());
             trailRenderer.AddPosition(trailRenderer.transform.position);
