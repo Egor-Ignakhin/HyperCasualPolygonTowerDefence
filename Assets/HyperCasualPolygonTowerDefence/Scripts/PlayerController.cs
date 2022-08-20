@@ -10,7 +10,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts
     {
         [SerializeField] private TrailRenderer trailRenderer;
         [SerializeField] private Material playerMaterial;
-        [SerializeField] private PlayerMove playerMove;
+        [SerializeField] private PlayerMotion playerMotion;
         [SerializeField] private Inventory mInventory;
 
         private int lastPositionsCount;
@@ -32,7 +32,8 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             if (lastPositionsCount != trailRenderer.positionCount)
                 OnChangedPositionsCount();
 
-            playerMove.Move();
+            playerMotion.Move();
+            playerMotion.Rotate();
 
             if (!Input.GetMouseButton(0))
             {
@@ -178,6 +179,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts
                         continue;
 
                     towers[j].SetInvaderInventory(mInventory);
+                    towers[j].SetInvaderColor(Color.green);
                     canBreak = true;
                     break;
                 }

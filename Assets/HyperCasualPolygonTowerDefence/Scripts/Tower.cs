@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Tower : MonoBehaviour
 {
@@ -7,9 +8,11 @@ public class Tower : MonoBehaviour
     [SerializeField] private float scoresPerSecond = 1;
 
     private Inventory invaderInventory;
+    private Image image;
 
     private void Start()
     {
+        image = GetComponent<Image>();
         Towers.Add(this);
     }
 
@@ -22,6 +25,11 @@ public class Tower : MonoBehaviour
     public void SetInvaderInventory(Inventory inventory)
     {
         invaderInventory = inventory;
+    }
+
+    public void SetInvaderColor(Color color)
+    {
+        image.color = color;
     }
 
     public static List<Tower> GetTowers()
