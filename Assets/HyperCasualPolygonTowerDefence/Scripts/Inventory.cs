@@ -8,4 +8,9 @@ public class Inventory : MonoBehaviour
     {
         scores += value;
     }
+
+    public float GetScores()
+    {
+        return scores;
+    }
 }

@@ -9,9 +9,9 @@ namespace HyperCasualPolygonTowerDefence.Scripts
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private TrailRenderer trailRenderer;
-        [SerializeField] private Transform towerTr;
         [SerializeField] private Material playerMaterial;
         [SerializeField] private PlayerMove playerMove;
+        [SerializeField] private Inventory mInventory;
 
         private int lastPositionsCount;
 
@@ -167,13 +167,23 @@ namespace HyperCasualPolygonTowerDefence.Scripts
                     vertices3D[2]
                 };
 
-                var towerIsInsideTriangle = MathExtensions.PointIsInsideTriangle(towerTr.position, vertices2D);
+                var canBreak = false;
+                var towers = Tower.GetTowers();
+                for (var j = 0; j < towers.Count; j++)
+                {
+                    var towerIsInsideTriangle =
+                        MathExtensions.PointIsInsideTriangle(towers[j].transform.position, vertices2D);
 
-                if (!towerIsInsideTriangle)
-                    continue;
+                    if (!towerIsInsideTriangle)
+                        continue;
 
-                towerTr.GetComponent<Tower>().SetInvaderInventory(GetComponent<Inventory>());
-                break;
+                    towers[j].SetInvaderInventory(mInventory);
+                    canBreak = true;
+                    break;
+                }
+
+                if (canBreak)
+                    break;
             }
         }
 
