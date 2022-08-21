@@ -3,14 +3,23 @@ using System.Collections.Generic;
 using HyperCasualPolygonTowerDefence.Scripts;
 using UnityEngine;
 
-[Serializable]
-public class TowerInvader : IInvader
+public class TowerInvader : MonoBehaviour, IInvader
 {
-    public event Action Died; 
     [SerializeField] private Inventory inventory;
     [SerializeField] private Color color = Color.black;
     [SerializeField] private Material material;
-    [SerializeField] private Transform transform;
+
+    public Vector2 GetPosition()
+    {
+        return transform.position;
+    }
+
+    public void Die()
+    {
+        Died?.Invoke();
+    }
+
+    public event Action Died;
 
     public void TryInvadeTowers(List<Vector3> path)
     {
@@ -78,36 +87,10 @@ public class TowerInvader : IInvader
 
                 if (someInvader == this)
                     continue;
-                
+
                 someInvader.Die();
             }
         }
-    }
-
-    public bool CanCloseAFigure(Vector3[] positions, ref Vector3 intersectionPoint)
-    {
-        var lineA = new Vector3Line
-        {
-            From = positions[0],
-            To = positions[1]
-        };
-
-        var lineB = new Vector3Line
-        {
-            From = positions[^2],
-            To = positions[^1]
-        };
-
-        if (lineB.From == lineA.To)
-            return false;
-
-        var linesRelationships =
-            MathExtensions.GetLinesRelationship(lineA, lineB, out intersectionPoint);
-
-        if (linesRelationships.Count != 1)
-            return false;
-
-        return linesRelationships[0] == MathExtensions.LinesRelationship.Intersect;
     }
 
     public List<Vector3> CloseAFigure(Vector3[] positions, Vector3 intersectionPoint)
@@ -145,15 +128,5 @@ public class TowerInvader : IInvader
         TryInvadeInvaders(vertices);
 
         return vertices;
-    }
-
-    public Vector2 GetPosition()
-    {
-        return transform.position;
-    }
-
-    public void Die()
-    {
-        Died?.Invoke();
     }
 }

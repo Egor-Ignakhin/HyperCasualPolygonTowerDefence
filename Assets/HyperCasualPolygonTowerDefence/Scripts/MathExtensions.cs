@@ -40,7 +40,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts
                    s + t <= 1;
         }
 
-        public static List<LinesRelationship> GetLinesRelationship(Vector3Line lineA, Vector3Line lineB,
+        private static List<LinesRelationship> GetLinesRelationship(Vector3Line lineA, Vector3Line lineB,
             out Vector3 intersectionPoint, bool a0IsEnd = true, bool a1IsEnd = true, bool b0IsEnd = true,
             bool b1IsEnd = true, bool x = true, bool y = true, bool z = true)
         {
@@ -119,14 +119,14 @@ namespace HyperCasualPolygonTowerDefence.Scripts
 
         public static bool CurvesAreIntersected(Vector3[] verticesA, Vector3[] verticesB)
         {
-            for (int i = 0; i < verticesA.Length - 1; i++)
+            for (var i = 0; i < verticesA.Length - 1; i++)
             {
                 var lineA = new Vector3Line
                 {
                     From = verticesA[i],
                     To = verticesA[i + 1]
                 };
-                for (int j = 0; j < verticesB.Length - 1; j++)
+                for (var j = 0; j < verticesB.Length - 1; j++)
                 {
                     var lineB = new Vector3Line
                     {
@@ -146,6 +146,97 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             }
 
             return false;
+        }
+
+        public static bool LineIsIntersectedCurve(Vector3Line line, Vector3[] vertices)
+        {
+            for (var i = 0; i < vertices.Length - 1; i++)
+            {
+                var lineB = new Vector3Line
+                {
+                    From = vertices[i],
+                    To = vertices[i + 1]
+                };
+
+                var linesRelationships =
+                    GetLinesRelationship(line, lineB, out _);
+
+                if (linesRelationships.Count != 1)
+                    continue;
+
+                if (linesRelationships[0] == LinesRelationship.Intersect)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool CurveIsIntersectItself(Vector3[] vertices, out Vector3[] outerVertices,
+            out Vector3 interSectionPoint)
+        {
+            for (var i = 0; i < vertices.Length - 1; i++)
+            {
+                var lineA = new Vector3Line
+                {
+                    From = vertices[i],
+                    To = vertices[i + 1]
+                };
+                for (var j = 0; j < vertices.Length - 1; j++)
+                {
+                    var lineB = new Vector3Line
+                    {
+                        From = vertices[j],
+                        To = vertices[j + 1]
+                    };
+
+                    if (lineA == lineB)
+                        continue;
+
+                    if (lineA.To == lineB.From)
+                        continue;
+
+                    if (lineA.From == lineB.To)
+                        continue;
+
+                    var linesRelationships =
+                        GetLinesRelationship(lineA, lineB, out interSectionPoint);
+
+                    if (linesRelationships.Count != 1)
+                        continue;
+
+                    if (linesRelationships[0] == LinesRelationship.Intersect)
+                    {
+                        outerVertices = new Vector3[i];
+                        for (var k = 0; k < i; k++) outerVertices[k] = vertices[k];
+
+                        return true;
+                    }
+                }
+            }
+
+            outerVertices = Array.Empty<Vector3>();
+            interSectionPoint = Vector3.zero;
+            return false;
+        }
+
+        public static List<Vector3> ComputeOuterVerticesFromClosedFigure(Vector3[] vertices, Vector3 intersectionPoint)
+        {
+            List<Vector3> outerVertices = new List<Vector3>();
+
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                if (Vector3.Distance(vertices[i],  intersectionPoint) < 0.1f)
+                {
+                    for (var j = 0; j < i; j++)
+                    {
+                        outerVertices.Add(vertices[j]);
+                    }
+
+                    break;
+                }
+            }
+
+            return outerVertices;
         }
     }
 }

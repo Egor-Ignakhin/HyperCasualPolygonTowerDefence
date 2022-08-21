@@ -12,10 +12,13 @@ namespace HyperCasualPolygonTowerDefence.Scripts
         [SerializeField] private PlayerMotion playerMotion;
         [SerializeField] private SpawnPoint spawnPoint;
         [SerializeField] private TowerInvader towerInvader;
+        [SerializeField] private TrailCutter trailCutter;
         private int lastPositionsCount;
 
         private void Start()
         {
+            trailCutter.OnInit();
+
             InvadersCounter.invaders.Add(towerInvader);
             towerInvader.Died += TowerInvaderOnDied;
 
@@ -24,6 +27,8 @@ namespace HyperCasualPolygonTowerDefence.Scripts
 
         private void Update()
         {
+            trailCutter.TryCutPlayerTrail();
+
             if (trailRenderer.positionCount == 1 && !Input.GetMouseButton(0))
                 trailRenderer.SetPosition(0, transform.position);
 
@@ -79,11 +84,14 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             if (lastPositionsCount < 3)
                 return;
 
-            var intersectionPoint = new Vector3(0, 0, 0);
-            if (!towerInvader.CanCloseAFigure(positions, ref intersectionPoint))
+            Vector3[] outerVertices;
+            Vector3 intersectionPoint;
+            if (!MathExtensions.CurveIsIntersectItself(positions, out outerVertices, out intersectionPoint))
                 return;
 
-            var vertices = towerInvader.CloseAFigure(positions, intersectionPoint);
+            var carvedPositions = new List<Vector3>(positions);
+            foreach (var t in outerVertices) carvedPositions.Remove(t);
+            var vertices = towerInvader.CloseAFigure(carvedPositions.ToArray(), intersectionPoint);
             ResetTrailPosition(vertices);
         }
 

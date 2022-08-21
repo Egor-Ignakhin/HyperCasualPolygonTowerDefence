@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 
-[System.Serializable]
 public class BotTowerInvader : TowerInvader
 {
-    public Vector3 FindTargetTowerPosition(Vector3 currentPosition)
+    public Vector3 FindNearestTowerPosition(Vector3 currentPosition)
     {
         var towers = Tower.GetTowers();
         towers = towers.OrderBy(t => Vector3.Distance(currentPosition, t.transform.position)).Reverse().ToList();
@@ -19,10 +19,5 @@ public class BotTowerInvader : TowerInvader
         }
 
         return targetTowerPosition;
-    }
-
-    public bool BotCanCloseFigure(Vector3[] positions, Vector3 position)
-    {
-        return Vector3.Distance(position, positions.Last()) <= 0.25f;
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HyperCasualPolygonTowerDefence.Scripts;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,10 +6,10 @@ public class Tower : MonoBehaviour
 {
     private static readonly List<Tower> Towers = new();
     [SerializeField] private float scoresPerSecond = 1;
+    private IInvader currentInvader;
+    private Image image;
 
     private Inventory invaderInventory;
-    private Image image;
-    private IInvader currentInvader;
 
     private void Start()
     {

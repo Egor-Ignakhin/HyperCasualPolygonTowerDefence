@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -14,20 +13,14 @@ public class SpawnPoint : MonoBehaviour
         spawnPosition = transform.position;
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(transform.position, 0.1f);
-    }
-
     private bool CanSpawn()
     {
         return spawnTime < 0;
     }
-    
+
     public void Spawn(Transform transform)
     {
-       // StartCoroutine(Spawning(transform));
+        // StartCoroutine(Spawning(transform));
         transform.position = spawnPosition;
     }
 
