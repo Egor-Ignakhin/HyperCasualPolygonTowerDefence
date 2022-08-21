@@ -9,15 +9,16 @@ namespace HyperCasualPolygonTowerDefence.Scripts
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private TrailRenderer trailRenderer;
-        [SerializeField] private Material playerMaterial;
         [SerializeField] private PlayerMotion playerMotion;
-        [SerializeField] private Inventory mInventory;
-
+        [SerializeField] private SpawnPoint spawnPoint;
+        [SerializeField] private TowerInvader towerInvader;
         private int lastPositionsCount;
-
 
         private void Start()
         {
+            InvadersCounter.invaders.Add(towerInvader);
+            towerInvader.Died += TowerInvaderOnDied;
+
             lastPositionsCount = trailRenderer.positionCount;
         }
 
@@ -58,6 +59,12 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             }
         }
 
+        private void TowerInvaderOnDied()
+        {
+            spawnPoint.Spawn(transform);
+            trailRenderer.Clear();
+        }
+
         private void OnChangedPositionsCount()
         {
 #if UNITY_EDITOR
@@ -73,120 +80,11 @@ namespace HyperCasualPolygonTowerDefence.Scripts
                 return;
 
             var intersectionPoint = new Vector3(0, 0, 0);
-            if (!CanClosingAFigure(positions, ref intersectionPoint))
+            if (!towerInvader.CanCloseAFigure(positions, ref intersectionPoint))
                 return;
 
-            CloseAFigure(positions, intersectionPoint, out var triangles);
-        }
-
-        private void CloseAFigure(Vector3[] positions, Vector3 intersectionPoint, out List<int> triangles)
-        {
-            var vertices = new List<Vector3>();
-
-            var positionsWithoutStartPoint = new List<Vector3>(positions);
-            positionsWithoutStartPoint.RemoveAt(0);
-            var centralPoint = MathExtensions.FindCentroid3D(positionsWithoutStartPoint.ToArray());
-
-            vertices.Add(centralPoint);
-            for (var i = 1; i < positions.Length - 1; i++) vertices.Add(positions[i]);
-
-            vertices.Add(intersectionPoint);
-
-            triangles = new List<int>();
-            for (var i = 1; i < vertices.Count; i++)
-            {
-                //Setting central point
-                triangles.Add(0);
-
-                //Setting a current point
-                triangles.Add(i);
-
-                //Setting a next point
-                var iIsLastIndex = i == vertices.Count - 1;
-                if (iIsLastIndex)
-                    triangles.Add(1);
-                else
-                    triangles.Add(i + 1);
-            }
-
-            var newGm = MeshCreator.CreateGameObject(vertices.ToArray(), triangles.ToArray());
-            newGm.GetComponent<MeshRenderer>().sharedMaterial = playerMaterial;
-
-            TryInvadeTower(vertices);
+            var vertices = towerInvader.CloseAFigure(positions, intersectionPoint);
             ResetTrailPosition(vertices);
-        }
-
-        private static bool CanClosingAFigure(Vector3[] positions, ref Vector3 intersectionPoint)
-        {
-            var lineA = new Vector3Line
-            {
-                From = positions[0],
-                To = positions[1]
-            };
-
-            var lineB = new Vector3Line
-            {
-                From = positions[^2],
-                To = positions[^1]
-            };
-
-            if (lineB.From == lineA.To)
-                return false;
-
-            var linesRelationships =
-                MathExtensions.GetLinesRelationship(lineA, lineB, out intersectionPoint);
-
-            if (linesRelationships.Count != 1)
-                return false;
-
-            return linesRelationships[0] == MathExtensions.LinesRelationship.Intersect;
-        }
-
-        private void TryInvadeTower(List<Vector3> vertices)
-        {
-            for (var i = 0; i < vertices.Count; i++)
-            {
-                var vertices3D = new Vector3[3];
-
-                //Setting central point
-                vertices3D[0] = vertices[0];
-
-                //Setting a current point
-                vertices3D[1] = vertices[i];
-
-                //Setting a next point
-                var iIsLastIndex = i == vertices.Count - 1;
-                if (iIsLastIndex)
-                    vertices3D[2] = vertices[1];
-                else
-                    vertices3D[2] = vertices[i + 1];
-
-                var vertices2D = new Vector2[]
-                {
-                    vertices3D[0],
-                    vertices3D[1],
-                    vertices3D[2]
-                };
-
-                var canBreak = false;
-                var towers = Tower.GetTowers();
-                for (var j = 0; j < towers.Count; j++)
-                {
-                    var towerIsInsideTriangle =
-                        MathExtensions.PointIsInsideTriangle(towers[j].transform.position, vertices2D);
-
-                    if (!towerIsInsideTriangle)
-                        continue;
-
-                    towers[j].SetInvaderInventory(mInventory);
-                    towers[j].SetInvaderColor(Color.green);
-                    canBreak = true;
-                    break;
-                }
-
-                if (canBreak)
-                    break;
-            }
         }
 
         private void ResetTrailPosition(List<Vector3> vertices)

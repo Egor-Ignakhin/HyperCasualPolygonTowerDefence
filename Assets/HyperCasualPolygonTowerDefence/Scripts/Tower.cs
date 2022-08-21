@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HyperCasualPolygonTowerDefence.Scripts;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,7 @@ public class Tower : MonoBehaviour
 
     private Inventory invaderInventory;
     private Image image;
+    private IInvader currentInvader;
 
     private void Start()
     {
@@ -35,5 +37,15 @@ public class Tower : MonoBehaviour
     public static List<Tower> GetTowers()
     {
         return Towers;
+    }
+
+    public IInvader GetInvader()
+    {
+        return currentInvader;
+    }
+
+    public void SetInvader(IInvader invader)
+    {
+        currentInvader = invader;
     }
 }

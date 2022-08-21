@@ -1,13 +1,62 @@
 using System.Collections.Generic;
+using System.Linq;
+using HyperCasualPolygonTowerDefence.Scripts;
 using UnityEditor;
 using UnityEngine;
 
 public class BotController : MonoBehaviour
 {
-    [SerializeField] private Transform towerTr;
-
+    [SerializeField] private TrailRenderer trailRenderer;
     [SerializeField] private List<Vector3> path = new();
     [SerializeField] private int vertexCount = 5;
+    [SerializeField] private BotMotion botMotion;
+    [SerializeField] private BotTowerInvader towerInvader;
+    private int currentPathId;
+    private Vector2 target;
+    [SerializeField] private TrailRenderer playerTrail;
+    [SerializeField] private SpawnPoint spawnPoint;
+
+    private void Start()
+    {
+        InvadersCounter.invaders.Add(towerInvader);
+        towerInvader.Died += TowerInvaderOnDied;
+        
+        ReInit();
+        transform.position = path[0];
+        trailRenderer.Clear();
+        botMotion.TargetIsReached += ChangeTarget;
+    }
+
+    private void TowerInvaderOnDied()
+    {
+        currentPathId = 0;
+        ReInit();
+        spawnPoint.Spawn(transform);
+        trailRenderer.Clear();
+    }
+
+    private void ReInit()
+    {
+        GeneratePath();
+        ChangeTarget();
+    }
+
+    private void Update()
+    {
+        var mVertices = new Vector3[trailRenderer.positionCount];
+        trailRenderer.GetPositions(mVertices);
+
+        var playerVertices = new Vector3[playerTrail.positionCount];
+        playerTrail.GetPositions(playerVertices);
+        if (MathExtensions.CurvesAreIntersected(mVertices, playerVertices))
+        {
+            TowerInvaderOnDied();
+            return;
+        }
+        
+        botMotion.Move();
+        botMotion.Rotate();
+    }
 
     private void OnDrawGizmos()
     {
@@ -21,15 +70,49 @@ public class BotController : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void ChangeTarget()
     {
-        GeneratePath();
+        if (currentPathId == path.Count)
+        {
+            currentPathId = 0;
+            towerInvader.TryInvadeTowers(path);
+            towerInvader.TryInvadeInvaders(path);
+            
+            var positions = new Vector3[trailRenderer.positionCount];
+            trailRenderer.GetPositions(positions);
+            
+            var intersectionPoint = new Vector3(0, 0, 0);
+            if (true/*towerInvader.BotCanCloseFigure(positions, transform.position)*/)
+            {
+                var vertices = towerInvader.CloseAFigure(positions, intersectionPoint);
+                ResetTrailPosition(vertices);
+            }
+
+            GeneratePath();
+        }
+
+        if(currentPathId > 0)
+        {
+            trailRenderer.AddPosition(transform.position);
+        }
+
+        target = path[currentPathId];
+        currentPathId++;
+
+        botMotion.SetDestination(target);
+    }
+
+    private void ResetTrailPosition(List<Vector3> vertices)
+    {
+        trailRenderer.Clear();
+        trailRenderer.AddPosition(vertices.Last());
+        trailRenderer.AddPosition(trailRenderer.transform.position);
     }
 
     private void GeneratePath()
     {
         path.Clear();
-        var towerPos = towerTr.position;
+        var towerPos = towerInvader.FindTargetTowerPosition(transform.position);
 
         var radDifference = vertexCount / 360f;
 
@@ -38,6 +121,7 @@ public class BotController : MonoBehaviour
         path.Add(towerPos + Vector3.down * vecLenght);
         path.Add(towerPos + Vector3.left * vecLenght);
         path.Add(towerPos + Vector3.up * vecLenght);
+        path.Add(towerPos + Vector3.right * vecLenght);
 
         for (var i = 0; i < vertexCount; i++)
         {

@@ -116,11 +116,36 @@ namespace HyperCasualPolygonTowerDefence.Scripts
 
             return centroid;
         }
-    }
 
-    public struct Vector3Line
-    {
-        public Vector3 From;
-        public Vector3 To;
+        public static bool CurvesAreIntersected(Vector3[] verticesA, Vector3[] verticesB)
+        {
+            for (int i = 0; i < verticesA.Length - 1; i++)
+            {
+                var lineA = new Vector3Line
+                {
+                    From = verticesA[i],
+                    To = verticesA[i + 1]
+                };
+                for (int j = 0; j < verticesB.Length - 1; j++)
+                {
+                    var lineB = new Vector3Line
+                    {
+                        From = verticesB[j],
+                        To = verticesB[j + 1]
+                    };
+
+                    var linesRelationships =
+                        GetLinesRelationship(lineA, lineB, out _);
+
+                    if (linesRelationships.Count != 1)
+                        continue;
+
+                    if (linesRelationships[0] == LinesRelationship.Intersect)
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
