@@ -3,29 +3,32 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-internal class FinishScreen : MonoBehaviour
+namespace HyperCasualPolygonTowerDefence.Scripts.Scenary
 {
-    [SerializeField] private TextMeshProUGUI defeatText;
-    [SerializeField] private TextMeshProUGUI victoryText;
+    internal class FinishScreen : MonoBehaviour
+    {
+        [SerializeField] private TextMeshProUGUI defeatText;
+        [SerializeField] private TextMeshProUGUI victoryText;
     
-    public void Activate(FinishType finishType)
-    {
-        gameObject.SetActive(true);
-        switch (finishType)
+        public void Activate(FinishType finishType)
         {
-            case FinishType.Defeat:
-                defeatText.enabled = true;
-                break;
-            case FinishType.Win:
-                victoryText.enabled = true;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(finishType), finishType, null);
+            gameObject.SetActive(true);
+            switch (finishType)
+            {
+                case FinishType.Defeat:
+                    defeatText.enabled = true;
+                    break;
+                case FinishType.Win:
+                    victoryText.enabled = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(finishType), finishType, null);
+            }
         }
-    }
 
-    public void Restart()
-    {
-        SceneManager.LoadScene(0);
+        public void Restart()
+        {
+            SceneManager.LoadScene(0);
+        }
     }
 }

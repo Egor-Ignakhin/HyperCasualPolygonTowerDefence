@@ -1,37 +1,41 @@
 using System;
+using HyperCasualPolygonTowerDefence.Joystick_Pack.Scripts.Base;
 using UnityEngine;
 
-[Serializable]
-public class PlayerMotion : ControllerMotion
+namespace HyperCasualPolygonTowerDefence.Scripts.Player
 {
-    [SerializeField] private Joystick joystick;
-    private PlayerInputHandler playerInputHandler;
-
-    public PlayerMotion()
+    [Serializable]
+    public class PlayerMotion : PersonMotion
     {
-        playerInputHandler = new PlayerInputHandler();
-    }
+        [SerializeField] private Joystick joystick;
+        private PlayerInputHandler playerInputHandler;
 
-    public override void Move()
-    {
-        Vector3 direction = ComputeDirection();
-        if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is PlayerBehaviorMove move)
+        public PlayerMotion()
         {
-            var translation = new Vector3(move.rotationMultiplier * moveSpeed * Time.deltaTime,
-                moveSpeed * Time.deltaTime * move.directionMultiplier);
-            transform.position += translation;
+            playerInputHandler = new PlayerInputHandler();
         }
-    }
 
-    public override void Rotate()
-    {
-        var direction = ComputeDirection();
-        if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is PlayerBehaviorMove)
-            transform.rotation = ComputeCurrentRotation(joystick.Direction, transform.eulerAngles);
-    }
+        public override void Move()
+        {
+            Vector3 direction = ComputeDirection();
+            if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is PlayerBehaviorMove move)
+            {
+                var translation = new Vector3(move.rotationMultiplier * moveSpeed * Time.deltaTime,
+                    moveSpeed * Time.deltaTime * move.directionMultiplier);
+                transform.position += translation;
+            }
+        }
 
-    protected override Vector2 ComputeDirection()
-    {
-        return joystick.Direction;
+        public override void Rotate()
+        {
+            var direction = ComputeDirection();
+            if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is PlayerBehaviorMove)
+                transform.rotation = ComputeCurrentRotation(joystick.Direction, transform.eulerAngles);
+        }
+
+        protected override Vector2 ComputeDirection()
+        {
+            return joystick.Direction;
+        }
     }
 }

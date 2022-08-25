@@ -1,35 +1,38 @@
-﻿using HyperCasualPolygonTowerDefence.Scripts;
+﻿using HyperCasualPolygonTowerDefence.Scripts.Extensions;
 using UnityEngine;
 
-[System.Serializable]
-internal class TrailCutter
+namespace HyperCasualPolygonTowerDefence.Scripts
 {
-    [SerializeField] private GameObject invaderGm;
-    private IInvader invader;
+    [System.Serializable]
+    internal class TrailCutter
+    {
+        [SerializeField] private GameObject invaderGm;
+        private IInvader invader;
     
-    [SerializeField] private TrailRenderer trailRenderer;
-    [SerializeField] private TrailRenderer enemyTrail;
-    [SerializeField] private Transform transform;
+        [SerializeField] private TrailRenderer trailRenderer;
+        [SerializeField] private TrailRenderer enemyTrail;
+        [SerializeField] private Transform transform;
 
-    public void OnInit()
-    {
-        invader = invaderGm.GetComponent<IInvader>();
-    }
-
-    public void TryCutPlayerTrail()
-    {
-        if (trailRenderer.positionCount == 0)
-            return;
-        
-        var playerVertices = new Vector3[enemyTrail.positionCount];
-        enemyTrail.GetPositions(playerVertices);
-
-        var mAdvancedLine = new Vector3Line
+        public void Initialize()
         {
-            From = trailRenderer.GetPosition(trailRenderer.positionCount - 1),
-            To = transform.position
-        };
-        if (MathExtensions.LineIsIntersectedCurve(mAdvancedLine, playerVertices))
-            invader.Die();
+            invader = invaderGm.GetComponent<IInvader>();
+        }
+
+        public void TryCutTrail()
+        {
+            if (trailRenderer.positionCount == 0)
+                return;
+        
+            var enemyVertices = new Vector3[enemyTrail.positionCount];
+            enemyTrail.GetPositions(enemyVertices);
+
+            var mAdvancedLine = new Vector3Line
+            {
+                From = trailRenderer.GetPosition(trailRenderer.positionCount - 1),
+                To = transform.position
+            };
+            if (MathExtensions.LineIsIntersectedCurve(mAdvancedLine, enemyVertices))
+                invader.Die();
+        }
     }
 }

@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
 
-public interface IInvader
+namespace HyperCasualPolygonTowerDefence.Scripts
 {
-    Vector2 GetPosition();
-    void Die();
+    public interface IInvader
+    {
+        Vector2 GetPosition();
+        void Die();
+    }
 }

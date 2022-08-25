@@ -1,5 +1,8 @@
-﻿internal enum FinishType
+﻿namespace HyperCasualPolygonTowerDefence.Scripts.Scenary
 {
-    Defeat,
-    Win
+    internal enum FinishType
+    {
+        Defeat,
+        Win
+    }
 }

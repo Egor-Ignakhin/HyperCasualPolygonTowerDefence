@@ -1,16 +1,19 @@
 using UnityEngine;
 
-public class Inventory : MonoBehaviour
+namespace HyperCasualPolygonTowerDefence.Scripts
 {
-    private float scores;
-
-    public void AddScores(float value)
+    public class Inventory : MonoBehaviour
     {
-        scores += value;
-    }
+        private float scores;
 
-    public float GetScores()
-    {
-        return scores;
+        public void AddScores(float value)
+        {
+            scores += value;
+        }
+
+        public float GetScores()
+        {
+            return scores;
+        }
     }
 }

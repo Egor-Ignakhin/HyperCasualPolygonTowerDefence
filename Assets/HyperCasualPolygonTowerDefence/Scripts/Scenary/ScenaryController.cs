@@ -1,36 +1,40 @@
+using HyperCasualPolygonTowerDefence.Scripts.Environment;
 using UnityEngine;
 
-public class ScenaryController : MonoBehaviour
+namespace HyperCasualPolygonTowerDefence.Scripts.Scenary
 {
-    [SerializeField] private Inventory playerInv;
-    [SerializeField] private Inventory enemyInv;
-    [SerializeField] private ScoresSlider playerScoresSlider;
-    [SerializeField] private ScoresSlider enemyScoresSlider;
-    [SerializeField] private FinishScreen finishScreen;
-    [SerializeField] private float scoresToWin = 10f;
-    private bool canFinishGame;
-
-    private void Update()
+    public class ScenaryController : MonoBehaviour
     {
-        UpdatePlayersAchievements();
+        [SerializeField] private Inventory playerInv;
+        [SerializeField] private Inventory enemyInv;
+        [SerializeField] private ScoresSlider playerScoresSlider;
+        [SerializeField] private ScoresSlider enemyScoresSlider;
+        [SerializeField] private FinishScreen finishScreen;
+        [SerializeField] private float scoresToWin = 10f;
+        private bool canFinishGame;
 
-        if (canFinishGame)
-            FinishGame();
-    }
+        private void Update()
+        {
+            UpdatePlayersAchievements();
 
-    private void UpdatePlayersAchievements()
-    {
-        var enemyScores = enemyInv.GetScores();
-        var playerScores = playerInv.GetScores();
-        canFinishGame = playerScores >= scoresToWin ||
-                        enemyScores >= scoresToWin;
+            if (canFinishGame)
+                FinishGame();
+        }
 
-        playerScoresSlider.SetValue(playerScores / scoresToWin);
-        enemyScoresSlider.SetValue(enemyScores / scoresToWin);
-    }
+        private void UpdatePlayersAchievements()
+        {
+            var enemyScores = enemyInv.GetScores();
+            var playerScores = playerInv.GetScores();
+            canFinishGame = playerScores >= scoresToWin ||
+                            enemyScores >= scoresToWin;
 
-    private void FinishGame()
-    {
-        finishScreen.Activate(playerInv.GetScores() > enemyInv.GetScores() ? FinishType.Win : FinishType.Defeat);
+            playerScoresSlider.SetValue(playerScores / scoresToWin);
+            enemyScoresSlider.SetValue(enemyScores / scoresToWin);
+        }
+
+        private void FinishGame()
+        {
+            finishScreen.Activate(playerInv.GetScores() > enemyInv.GetScores() ? FinishType.Win : FinishType.Defeat);
+        }
     }
 }

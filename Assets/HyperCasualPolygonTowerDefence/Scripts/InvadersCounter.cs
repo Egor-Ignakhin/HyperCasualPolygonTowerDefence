@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 
-public static class InvadersCounter
+namespace HyperCasualPolygonTowerDefence.Scripts
 {
-    public static List<IInvader> invaders = new();
-
-    public static List<IInvader> GetInvaders()
+    public static class InvadersCounter
     {
-        return invaders;
+        public static List<IInvader> invaders = new();
+
+        public static List<IInvader> GetInvaders()
+        {
+            return invaders;
+        }
     }
 }
