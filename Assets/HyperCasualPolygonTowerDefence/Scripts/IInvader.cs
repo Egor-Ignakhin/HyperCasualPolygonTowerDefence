@@ -6,5 +6,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts
     {
         Vector2 GetPosition();
         void Die();
+        void GetTrailPositions(Vector3[] positions);
+        int GetPositionsCount();
     }
 }

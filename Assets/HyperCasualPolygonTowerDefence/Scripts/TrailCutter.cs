@@ -1,42 +1,51 @@
-﻿using HyperCasualPolygonTowerDefence.Scripts.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using HyperCasualPolygonTowerDefence.Scripts.Environment;
+using HyperCasualPolygonTowerDefence.Scripts.Extensions;
 using UnityEngine;
 
 namespace HyperCasualPolygonTowerDefence.Scripts
 {
-    [System.Serializable]
+    [Serializable]
     internal class TrailCutter
     {
-        [SerializeField] private GameObject invaderGm;
-        private IInvader invader;
-    
         [SerializeField] private TrailRenderer trailRenderer;
-        [SerializeField] private TrailRenderer enemyTrail;
         [SerializeField] private Transform transform;
-
-        public void Initialize()
-        {
-            invader = invaderGm.GetComponent<IInvader>();
-        }
+        [SerializeField] private TowerInvader mInvader;
 
         public void Update()
         {
             if (trailRenderer.positionCount == 0)
                 return;
 
-            TryCutTrail();
+            TryCutInvaderTrails();
         }
 
-        private void TryCutTrail()
+        private void TryCutInvaderTrails()
         {
-            var enemyVertices = new Vector3[enemyTrail.positionCount];
-            enemyTrail.GetPositions(enemyVertices);
-
-            var mAdvancedLine = new Vector3Line
+            var invaders = new List<IInvader>(InvadersCounter.GetInvaders());
+            
+            var advancedLine = new Vector3Line
             {
                 From = trailRenderer.GetPosition(trailRenderer.positionCount - 1),
                 To = transform.position
             };
-            if (MathExtensions.LineIsIntersectedCurve(mAdvancedLine, enemyVertices))
+            
+            foreach (var invader in invaders)
+            {
+                if((TowerInvader)invader == mInvader)
+                    continue;
+                
+                TryCutInvaderTrail(invader,advancedLine);
+            }
+        }
+
+        private void TryCutInvaderTrail(IInvader invader, Vector3Line advancedLine)
+        {
+            var enemyVertices = new Vector3[invader.GetPositionsCount()];
+            invader.GetTrailPositions(enemyVertices);
+
+            if (MathExtensions.LineIsIntersectedCurve(advancedLine, enemyVertices))
                 invader.Die();
         }
     }

@@ -11,15 +11,14 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
         [SerializeField] private PlayerMotion motion;
         [SerializeField] private PlayerRotation rotation;
         [SerializeField] private TowerInvader towerInvader;
-        [SerializeField] private TrailController trailController;
+        [SerializeField] private TrailIntersectionChecker trailIntersectionChecker;
+        [SerializeField] private TrailCutter trailCutter;
 
         private List<IDisposable> subscriptions;
 
         private void Start()
         {
-            InvadersCounter.invaders.Add(towerInvader);
-
-            trailController.Initialize(towerInvader);
+            trailIntersectionChecker.Initialize(towerInvader);
 
             InitializeLoopSubs();
         }
@@ -35,7 +34,8 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
             {
                 Loops.Update.Start(motion.Move),
                 Loops.Update.Start(rotation.Rotate),
-                Loops.Update.Start(trailController.Update)
+                Loops.Update.Start(trailIntersectionChecker.Update),
+                Loops.Update.Start(trailCutter.Update)
             };
         }
 

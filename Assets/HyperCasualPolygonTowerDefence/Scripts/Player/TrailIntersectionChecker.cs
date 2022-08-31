@@ -9,29 +9,25 @@ using UnityEngine;
 namespace HyperCasualPolygonTowerDefence.Scripts.Player
 {
     [Serializable]
-    internal class TrailController
+    internal class TrailIntersectionChecker
     {
         [SerializeField] private TrailRenderer trailRenderer;
-        [SerializeField] private TrailCutter trailCutter;
         private List<Vector3> carvedPositions;
         private Vector3 intersectionPoint;
         private int lastPositionsCount;
         private TowerInvader mInvader;
+
         private Transform trailRendererTr;
 
         public void Initialize(TowerInvader invader)
         {
             lastPositionsCount = trailRenderer.positionCount;
-            trailCutter.Initialize();
             mInvader = invader;
-            mInvader.Died += ClearTrail;
             trailRendererTr = trailRenderer.transform;
         }
 
         public void Update()
         {
-            trailCutter.Update();
-
             var positionsCountChanged = lastPositionsCount != trailRenderer.positionCount;
             if (positionsCountChanged)
                 OnPositionsCountChanged();
@@ -44,23 +40,21 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
 
             lastPositionsCount = positions.Length;
 
+            IntersectingCheck(positions);
+        }
+
+        private void IntersectingCheck(Vector3[] positions)
+        {
             if (lastPositionsCount < 3)
                 return;
 
-            Vector3[] outerVertices;
-            
-            if (CurveIsIntersectMesh(positions))
-            {
-                outerVertices = Array.Empty<Vector3>();
-            }
-            else
-            {
-                var curveIsIntersectItself = MathExtensions.CurveIsIntersectItself(
-                    positions, out outerVertices, out intersectionPoint);
-                
-                if (!curveIsIntersectItself)
-                    return;
-            }
+            var outerVertices = Array.Empty<Vector3>();
+
+            var isIntersecting = CurveIsIntersectMesh(positions) || MathExtensions.CurveIsIntersectItself(
+                positions, out outerVertices, out intersectionPoint);
+
+            if (!isIntersecting)
+                return;
 
             carvedPositions = new List<Vector3>(positions);
             foreach (var t in outerVertices) carvedPositions.Remove(t);
@@ -71,7 +65,8 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
         private bool CurveIsIntersectMesh(Vector3[] positions)
         {
             var mMeshFilter = MeshCreator.GetMesh(mInvader);
-            return mMeshFilter && MathExtensions.CurveIsIntersectMesh(positions, mMeshFilter.mesh, out intersectionPoint);
+            return mMeshFilter &&
+                   MathExtensions.CurveIsIntersectMesh(positions, mMeshFilter.mesh, out intersectionPoint);
         }
 
         private void OnTrailIntersecting()
@@ -80,16 +75,9 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
             ResetTrailFromPoint(vertices.Last());
         }
 
-     
-
-        public void ClearTrail()
-        {
-            trailRenderer.Clear();
-        }
-
         public void ResetTrailFromPoint(Vector3 point)
         {
-            ClearTrail();
+            trailRenderer.Clear();
             trailRenderer.AddPosition(point);
             trailRenderer.AddPosition(trailRendererTr.position);
             lastPositionsCount = trailRenderer.positionCount;

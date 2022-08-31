@@ -11,15 +11,33 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Environment
         [SerializeField] private Inventory inventory;
         [SerializeField] private Color color = Color.black;
         [SerializeField] private Material material;
+        [SerializeField] private TrailRenderer mTrail;
 
         public Vector2 GetPosition()
         {
             return transform.position;
         }
 
+        private void Start()
+        {
+            InvadersCounter.AddInvader(this);
+        }
+
         public void Die()
         {
             Died?.Invoke();
+            
+            mTrail.Clear();
+        }
+
+        public void GetTrailPositions(Vector3[] positions)
+        {
+            mTrail.GetPositions(positions);
+        }
+
+        public int GetPositionsCount()
+        {
+            return mTrail.positionCount;
         }
 
         public event Action Died;
@@ -30,7 +48,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Environment
             {
                 var vertices = new Vector2[3];
 
-                //Setting central point
+                //Setting a central point
                 vertices[0] = path[0];
 
                 //Setting a current point
