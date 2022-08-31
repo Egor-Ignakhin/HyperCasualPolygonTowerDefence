@@ -12,30 +12,32 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
     internal class TrailController
     {
         [SerializeField] private TrailRenderer trailRenderer;
-        [SerializeField] private Transform transform;
         [SerializeField] private TrailCutter trailCutter;
         private List<Vector3> carvedPositions;
         private Vector3 intersectionPoint;
         private int lastPositionsCount;
         private TowerInvader mInvader;
-        public event Action TrailIsIntersecting;
+        private Transform trailRendererTr;
 
         public void Initialize(TowerInvader invader)
         {
             lastPositionsCount = trailRenderer.positionCount;
             trailCutter.Initialize();
             mInvader = invader;
+            mInvader.Died += ClearTrail;
+            trailRendererTr = trailRenderer.transform;
         }
 
         public void Update()
         {
-            trailCutter.TryCutTrail();
+            trailCutter.Update();
 
-            if (lastPositionsCount != trailRenderer.positionCount)
-                OnChangedPositionsCount();
+            var positionsCountChanged = lastPositionsCount != trailRenderer.positionCount;
+            if (positionsCountChanged)
+                OnPositionsCountChanged();
         }
 
-        private void OnChangedPositionsCount()
+        private void OnPositionsCountChanged()
         {
             var positions = new Vector3[trailRenderer.positionCount];
             trailRenderer.GetPositions(positions);
@@ -45,64 +47,52 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Player
             if (lastPositionsCount < 3)
                 return;
 
-
-            var curveIsIntersectItself = MathExtensions.CurveIsIntersectItself(
-                positions, out var outerVertices, out intersectionPoint);
-            if (curveIsIntersectItself)
+            Vector3[] outerVertices;
+            
+            if (CurveIsIntersectMesh(positions))
             {
+                outerVertices = Array.Empty<Vector3>();
             }
             else
             {
-                if (CurveIsIntersectMesh(positions))
-                {
-                }
-                else
-                {
+                var curveIsIntersectItself = MathExtensions.CurveIsIntersectItself(
+                    positions, out outerVertices, out intersectionPoint);
+                
+                if (!curveIsIntersectItself)
                     return;
-                }
             }
-            
+
             carvedPositions = new List<Vector3>(positions);
             foreach (var t in outerVertices) carvedPositions.Remove(t);
 
-            TrailIsIntersecting?.Invoke();
+            OnTrailIntersecting();
         }
 
         private bool CurveIsIntersectMesh(Vector3[] positions)
         {
             var mMeshFilter = MeshCreator.GetMesh(mInvader);
-            if (!mMeshFilter)
-                return false;
-
-            var mMeshVertices = mMeshFilter.mesh.vertices;
-
-            var curveIsIntersectMesh = MathExtensions.CurveIsIntersectMesh(
-                positions, mMeshVertices, out intersectionPoint);
-
-            return curveIsIntersectMesh;
+            return mMeshFilter && MathExtensions.CurveIsIntersectMesh(positions, mMeshFilter.mesh, out intersectionPoint);
         }
 
-        public void Clear()
+        private void OnTrailIntersecting()
+        {
+            var vertices = mInvader.CloseAFigure(carvedPositions.ToArray(), intersectionPoint);
+            ResetTrailFromPoint(vertices.Last());
+        }
+
+     
+
+        public void ClearTrail()
         {
             trailRenderer.Clear();
         }
 
-        public void ResetTrailPosition(List<Vector3> vertices)
+        public void ResetTrailFromPoint(Vector3 point)
         {
-            trailRenderer.Clear();
-            trailRenderer.AddPosition(vertices.Last());
-            trailRenderer.AddPosition(trailRenderer.transform.position);
+            ClearTrail();
+            trailRenderer.AddPosition(point);
+            trailRenderer.AddPosition(trailRendererTr.position);
             lastPositionsCount = trailRenderer.positionCount;
-        }
-
-        public Vector3[] GetCarvedPositions()
-        {
-            return carvedPositions.ToArray();
-        }
-
-        public Vector3 GetIntersectionPoint()
-        {
-            return intersectionPoint;
         }
     }
 }

@@ -225,31 +225,40 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Extensions
             return outerVertices;
         }
 
-        public static bool CurveIsIntersectMesh(Vector3[] curveVertices, Vector3[] meshVertices,
+        public static bool CurveIsIntersectMesh(IReadOnlyList<Vector3> positions, Mesh mesh,
             out Vector3 intersectionPoint)
         {
+            var mMeshVertices = mesh.vertices;
+
             var lineEnd = new Vector3Line
             {
-                From = curveVertices[^2],
-                To = curveVertices[^1]
+                From = positions[^2],
+                To = positions[^1]
             };
+            var curveIsIntersectMesh = LineIsIntersectMesh(
+                lineEnd, mMeshVertices, out intersectionPoint);
 
-            for (var i = 1; i < meshVertices.Length; i++)
+            return curveIsIntersectMesh;
+        }
+
+        private static bool LineIsIntersectMesh(in Vector3Line lineIn, IReadOnlyList<Vector3> meshVertices,
+            out Vector3 intersectionPoint)
+        {
+            for (var i = 0; i < meshVertices.Count - 1; i++)
             {
                 var line = new Vector3Line
                 {
-                    From = meshVertices[i - 1],
-                    To = meshVertices[i]
+                    From = meshVertices[i],
+                    To = meshVertices[i + 1]
                 };
 
                 var linesRelationships =
-                    GetLinesRelationship(lineEnd, line, out intersectionPoint);
+                    GetLinesRelationship(lineIn, line, out intersectionPoint);
 
                 if (linesRelationships.Count != 1)
                     continue;
 
-                if (linesRelationships[0] == LinesRelationship.Intersect)
-                    return true;
+                if (linesRelationships[0] == LinesRelationship.Intersect) return true;
             }
 
             intersectionPoint = Vector3.zero;

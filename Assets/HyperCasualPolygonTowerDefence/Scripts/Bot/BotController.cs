@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HyperCasualPolygonTowerDefence.Scripts.Environment;
 using HyperCasualPolygonTowerDefence.Scripts.Extensions;
 using UnityEngine;
 
@@ -10,8 +9,8 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Bot
     {
         [SerializeField] private TrailRenderer trailRenderer;
         [SerializeField] private BotMotion botMotion;
+        [SerializeField] private BotRotation botRotation;
         [SerializeField] private BotTowerInvader towerInvader;
-        [SerializeField] private SpawnPoint spawnPoint;
         [SerializeField] private TrailCutter trailCutter;
 
         private readonly IPathFactory pathFactory = new BotPathFactory();
@@ -29,17 +28,16 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Bot
 
         private void Update()
         {
-            trailCutter.TryCutTrail();
+            trailCutter.Update();
 
             botMotion.Move();
-            botMotion.Rotate();
+            botRotation.Rotate();
         }
 
         private void TowerInvaderOnDied()
         {
             pathHolder.Iterator = 0;
             ReInit();
-            spawnPoint.Spawn(transform);
             trailRenderer.Clear();
         }
 
@@ -81,6 +79,7 @@ namespace HyperCasualPolygonTowerDefence.Scripts.Bot
 
             var target = pathHolder.Path[pathHolder.Iterator];
             botMotion.SetDestination(target);
+            botRotation.SetDestination(target);
             pathHolder.Iterator++;
         }
 

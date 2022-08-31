@@ -18,11 +18,16 @@ namespace HyperCasualPolygonTowerDefence.Scripts
             invader = invaderGm.GetComponent<IInvader>();
         }
 
-        public void TryCutTrail()
+        public void Update()
         {
             if (trailRenderer.positionCount == 0)
                 return;
-        
+
+            TryCutTrail();
+        }
+
+        private void TryCutTrail()
+        {
             var enemyVertices = new Vector3[enemyTrail.positionCount];
             enemyTrail.GetPositions(enemyVertices);
 

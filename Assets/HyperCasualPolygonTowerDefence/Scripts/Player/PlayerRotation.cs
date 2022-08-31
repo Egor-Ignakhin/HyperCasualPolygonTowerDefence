@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HyperCasualPolygonTowerDefence.Joystick_Pack.Scripts.Base;
 using HyperCasualPolygonTowerDefence.Scripts.Player.Behavior;
 using UnityEngine;
@@ -6,23 +6,21 @@ using UnityEngine;
 namespace HyperCasualPolygonTowerDefence.Scripts.Player
 {
     [Serializable]
-    public class PlayerMotion : PersonMotion
+    internal class PlayerRotation : PersonRotation
     {
         [SerializeField] private Joystick joystick;
         private PlayerInputHandler playerInputHandler;
 
-        public PlayerMotion()
+        public PlayerRotation()
         {
             playerInputHandler = new PlayerInputHandler();
         }
-
-        public override void Move()
+        
+        public override void Rotate()
         {
-            Vector3 direction = ComputeDirection();
-            if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is not PlayerMoveBehavior move) return;
-            var translation = new Vector3(move.RotationMultiplier * moveSpeed * Time.deltaTime,
-                moveSpeed * Time.deltaTime * move.DirectionMultiplier);
-            transform.position += translation;
+            var direction = ComputeDirection();
+            if (playerInputHandler.ComputeCurrentPlayerBehavior(direction) is PlayerMoveBehavior)
+                transform.rotation = ComputeCurrentRotation(joystick.Direction, transform.eulerAngles);
         }
 
         protected override Vector2 ComputeDirection()

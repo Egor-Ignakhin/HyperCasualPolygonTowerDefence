@@ -1,27 +1,23 @@
 ﻿using System;
+using HyperCasualPolygonTowerDefence.Scripts.Player;
 using UnityEngine;
 
 namespace HyperCasualPolygonTowerDefence.Scripts.Bot
 {
     [Serializable]
-    internal class BotMotion : PersonMotion
+    public class BotRotation : PersonRotation
     {
         private Vector2 destination;
-        public event Action TargetIsReached;
 
         public void SetDestination(Vector2 v)
         {
             destination = v;
         }
 
-        public override void Move()
+        public override void Rotate()
         {
             var direction = ComputeDirection();
-            var translation = direction * (moveSpeed * Time.deltaTime);
-            transform.position += new Vector3(translation.x, translation.y);
-
-            if (Vector2.Distance(transform.position, destination) < 0.1f)
-                TargetIsReached?.Invoke();
+            transform.rotation = ComputeCurrentRotation(direction, transform.eulerAngles);
         }
 
         protected override Vector2 ComputeDirection()
